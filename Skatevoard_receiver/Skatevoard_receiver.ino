@@ -1,7 +1,11 @@
+#include <SoftwareServo.h> 
 #include <RH_ASK.h>
 #include <SPI.h>
 
+
+
 RH_ASK driver(2500, 16,14,10);
+Adafruit_SoftServo escServo;
 
 int sensorVal[4] = {0};
 int potval;
@@ -13,6 +17,7 @@ const int DECCELERATION = 2;
 
 void setup() {
   driver.init();
+  escServo.attach(9);
   curval=0;
   Serial.begin(9600);
 
@@ -27,9 +32,7 @@ void loop() {
         potval = sensorVal[1];
         curval = curval + ACCELERATION;
         curval = min(curval, MAXSPEED);
-        Serial.print(potval);
-        Serial.print(" ");
-        Serial.println(curval);
+        escServo.write(curval);
         delay(50);
     }
 
@@ -40,23 +43,17 @@ void loop() {
       if(potval < 0){
         curval = curval - DECCELERATION;
         curval = max(curval, 0);
-        Serial.print(potval);
-        Serial.print(" ");
-        Serial.println(curval);
+         escServo.write(curval);
         delay(50);
       }else{
         curval=curval - 1;
         curval = max(curval, 0);
-        Serial.print(potval);
-        Serial.print(" ");
-        Serial.println(curval);
+         escServo.write(curval);
         delay(50);
       }
         
     }
-    Serial.print(potval);
-    Serial.print(" ");
-    Serial.println(curval);
+     escServo.write(curval);
 }
 
 void receive(){
