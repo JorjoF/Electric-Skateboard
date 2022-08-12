@@ -1,3 +1,4 @@
+#include <SoftwareServo.h> 
 #include <RH_ASK.h>
 #include <SPI.h>
 #include <ESC.h>
@@ -7,7 +8,10 @@
 #define MAX_SPEED (2000)
 #define MIN_SPEED (1300)
 
+
+
 RH_ASK driver(2500, 16,14,10);
+
 ESC myESC (9, MIN_SPEED, MAX_SPEED, 500);
 
 int sensorVal[4] = {0};
@@ -23,6 +27,7 @@ void setup() {
   pinMode(BUZZER_PIN, OUTPUT);
   pinMode(LED_PIN, OUTPUT);
   driver.init();
+  escServo.attach(9);
   curval=0;
   myESC.arm();  
   digitalWrite(LED_PIN, HIGH);  
@@ -64,7 +69,6 @@ void loop() {
         delay(50);
       }
     }
-
     Serial.println(curval);
     esc(curval);
 }
