@@ -1,88 +1,79 @@
-#include <SoftwareServo.h> 
 #include <RH_ASK.h>
 #include <SPI.h>
-#include <ESC.h>
 
 #define LED_PIN (7)
 #define BUZZER_PIN (6)
-#define MAX_SPEED (2000)
-#define MIN_SPEED (1300)
 
 
-
-RH_ASK driver(2500, 16,14,10);
-
-ESC myESC (9, MIN_SPEED, MAX_SPEED, 500);
+RH_ASK driver(2000, 16,14,10);
 
 int sensorVal[4] = {0};
 int potval;
 int curval;
 
-const int MAXSPEED = 180;
-const int CONSTRAIN = 100;
-const int ACCELERATION = 1;
-const int DECCELERATION = 2;
+const int MAXSPEED = 255;
+const int ACCELERATION = 5;
+const int DECCELERATION = 7;
 
 void setup() {
   pinMode(BUZZER_PIN, OUTPUT);
   pinMode(LED_PIN, OUTPUT);
-  driver.init();
-  escServo.attach(9);
+  pinMode(3, OUTPUT);
+  if(driver.init()) ;
   curval=0;
-  myESC.arm();  
-  digitalWrite(LED_PIN, HIGH);  
   Serial.begin(9600);
-  delay(5000);
-  beep(1);
-
 }
 
 void loop() {
-    receive();
-    potval = sensorVal[1];
-
-    while(curval<potval){
-        receive();
-        potval = sensorVal[1];
-        curval = curval + ACCELERATION;
-        curval = min(curval, MAXSPEED);
-        esc(curval);
-        Serial.println(curval);
-        delay(50);
-    }
-
-    while(curval>potval){
+  receive();
+  while(sensorVal[2] == 0){
       receive();
       potval = sensorVal[1];
- 
-      if(potval < 0){
-        curval = curval - DECCELERATION;
-        curval = max(curval, 0);
-        Serial.println(curval);
-        esc(curval);
-        delay(50);
-      }else{
-        curval=curval - 1;
-        curval = max(curval, 0);
-        Serial.println(curval);
-        esc(curval);
-        delay(50);
+  
+      while(curval<potval){
+          receive();
+          potval = sensorVal[1];
+          curval = curval + ACCELERATION;
+          curval = min(curval, MAXSPEED);
+          analogWrite(3,curval);
+          delay(50);
       }
-    }
-    Serial.println(curval);
-    esc(curval);
+  
+      while(curval>potval){
+        receive();
+        potval = sensorVal[1];
+   
+        if(potval < 0){
+          curval = curval - DECCELERATION;
+          curval = max(curval, 0);
+          analogWrite(3,curval);
+          delay(50);
+        }else{
+          curval=curval - ACCELERATION;
+          curval = max(curval, 0);
+          analogWrite(3,curval);
+          delay(50);
+        }
+      }
+      analogWrite(3,curval);
+  }
+  potval = 0;
+  while(curval>potval){
+    curval=curval - DECCELERATION;
+    curval = max(curval, 0);
+    analogWrite(3,curval); 
+    delay(50);
+  }
+  analogWrite(3,curval);  
 }
+  
 
 void receive(){
   uint8_t buflen = sizeof(sensorVal);
-  driver.recv((uint8_t *)sensorVal, &buflen);
+  driver.recv((uint8_t *)sensorVal, &buflen);  
+  
 }
 
-void esc(int curval){
-  curval = map(curval, 0, MAXSPEED, MIN_SPEED, MAX_SPEED);
-  curval = constrain(curval, 1000, 2000);
-  myESC.speed(curval);
-}
 
 void beep(int a){
   switch(a){

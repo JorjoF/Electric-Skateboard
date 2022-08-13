@@ -7,7 +7,7 @@
 #define z 3
 
 
-RH_ASK driver(2500,  16,  14, 10);
+RH_ASK driver(2000,  16,  14, 10);
 
 int sensorVal[4];
 
