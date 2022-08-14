@@ -1,90 +1,74 @@
-#include <RH_ASK.h>
 #include <SPI.h>
+#include "printf.h"
+#include "RF24.h"
 
-#define LED_PIN (7)
-#define BUZZER_PIN (6)
+#define LED_PIN (10)
+#define go (6)
+#define slow (5)
 
-
-RH_ASK driver(2000, 16,14,10);
+RF24 radio(18, 19);
+const byte address[6] = "000001";
 
 int sensorVal[4] = {0};
 int potval;
 int curval;
+int slowval;
 
 const int MAXSPEED = 255;
 const int ACCELERATION = 5;
 const int DECCELERATION = 7;
 
 void setup() {
-  pinMode(BUZZER_PIN, OUTPUT);
   pinMode(LED_PIN, OUTPUT);
-  pinMode(3, OUTPUT);
-  if(driver.init()) ;
+  pinMode(go, OUTPUT);
+  pinMode(slow, OUTPUT);
+  radio.begin();
+  radio.openReadingPipe(0, address);
+  radio.setPALevel(RF24_PA_LOW);
+  radio.startListening();
+
   curval=0;
   Serial.begin(9600);
 }
 
 void loop() {
-  receive();
-  while(sensorVal[2] == 0){
-      receive();
+     while(sensorVal[2] == 0){
+      radio.read(&sensorVal, sizeof(sensorVal));
       potval = sensorVal[1];
   
       while(curval<potval){
-          receive();
+          radio.read(&sensorVal, sizeof(sensorVal));
           potval = sensorVal[1];
           curval = curval + ACCELERATION;
           curval = min(curval, MAXSPEED);
-          analogWrite(3,curval);
+          analogWrite(go,curval);
           delay(50);
       }
   
       while(curval>potval){
-        receive();
+        radio.read(&sensorVal, sizeof(sensorVal));
         potval = sensorVal[1];
    
         if(potval < 0){
           curval = curval - DECCELERATION;
-          curval = max(curval, 0);
-          analogWrite(3,curval);
+          curval = min(curval, MAXSPEED);
+          analogWrite(go,curval);
           delay(50);
         }else{
-          curval=curval - ACCELERATION;
-          curval = max(curval, 0);
-          analogWrite(3,curval);
+          curval = curval - ACCELERATION;
+          curval = min(curval, MAXSPEED);
+          analogWrite(go,curval);
           delay(50);
         }
       }
-      analogWrite(3,curval);
-  }
-  potval = 0;
-  while(curval>potval){
-    curval=curval - DECCELERATION;
-    curval = max(curval, 0);
-    analogWrite(3,curval); 
-    delay(50);
-  }
-  analogWrite(3,curval);  
-}
-  
-
-void receive(){
-  uint8_t buflen = sizeof(sensorVal);
-  driver.recv((uint8_t *)sensorVal, &buflen);  
-  
-}
-
-
-void beep(int a){
-  switch(a){
-    case 1:
-      analogWrite(BUZZER_PIN,200);
-      delay(250);
-      analogWrite(BUZZER_PIN,0);
-      delay(250);
-      analogWrite(BUZZER_PIN,255);
-      delay(250);
-      analogWrite(BUZZER_PIN,0);
-      break;
-  }
+      analogWrite(go,curval);  
+    }
+    potval = 0;
+    while(curval>potval){
+      curval = curval - DECCELERATION;
+      curval = min(curval, MAXSPEED);
+      analogWrite(go,curval);
+      delay(50);
+    }
+    analogWrite(go,curval);
 }

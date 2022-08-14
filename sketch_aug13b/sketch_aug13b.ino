@@ -3,8 +3,11 @@
 #include "RF24.h"
 
 RF24 radio(18, 19);
-const byte address[6] = "000001";
+const byte address[6] = "00001";
+
 int sensorVal[4];
+int potval;
+int button;
 
 void setup() {
   radio.begin();
@@ -17,9 +20,17 @@ void setup() {
 }
 
 void loop() {
-  if(radio.available()){
-    radio.read(&sensorVal, sizeof(sensorVal));
-    Serial.println(sensorVal[1]);
+  receive();
+  Serial.println(potval);
+  while(button == 0){
+    receive();
+    Serial.println(potval);
   }
+  delay(50);
+}
 
+void receive(){
+  radio.read(&sensorVal, sizeof(sensorVal));
+  button = sensorVal[2];
+  potval = sensorVal[1];
 }

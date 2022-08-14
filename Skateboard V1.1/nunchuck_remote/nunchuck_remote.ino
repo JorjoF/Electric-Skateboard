@@ -8,7 +8,7 @@
 #define z 3
 
 RF24 radio(19, 18);
-const byte address[6] = "000001";
+const byte address[6] = "00001";
 
 int sensorVal[4];
 
@@ -25,12 +25,12 @@ void setup() {
 }
   
 void loop() {
-   sensorVal[0] = analogX(analog_x);
+  
    sensorVal[1] = analogY(analog_y);
    sensorVal[2] = digitalRead(z);
    sensorVal[3] = digitalRead(c);
+   sensorVal[0] = analogX(analog_x);
 
    radio.write(&sensorVal, sizeof(sensorVal));
-   delay(50);
        
 }
