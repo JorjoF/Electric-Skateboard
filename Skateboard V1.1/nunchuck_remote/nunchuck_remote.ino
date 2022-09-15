@@ -10,7 +10,7 @@
 RF24 radio(19, 18);
 const byte address[6] = "00001";
 
-int sensorVal[4];
+int sensorVal[3];
 
 
 void setup() {
@@ -26,10 +26,9 @@ void setup() {
   
 void loop() {
   
-   sensorVal[1] = analogY(analog_y);
-   sensorVal[2] = digitalRead(z);
-   sensorVal[3] = digitalRead(c);
-   sensorVal[0] = analogX(analog_x);
+   sensorVal[0] = analogY(analog_y);
+   sensorVal[1] = digitalRead(z);
+   sensorVal[2] = digitalRead(c);
 
    radio.write(&sensorVal, sizeof(sensorVal));
        
